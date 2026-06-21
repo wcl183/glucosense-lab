@@ -1,0 +1,40 @@
+server:
+  port: 8000
+  tomcat:
+    max-swallow-size: 20MB
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:experiment_manage}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&useSSL=false
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:123456}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:ncoZGB_sY8WdSDNcMXlGo11mBUOQJVJXLJNrWnnbtv8}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:30}
+  storage:
+    uploads-dir: ${UPLOADS_DIR:uploads}
+    downloads-dir: ${DOWNLOADS_DIR:downloads}
+  external:
+    host: ${EXTERNAL_DB_HOST:localhost}
+    port: ${EXTERNAL_DB_PORT:3306}
+    username: ${EXTERNAL_DB_USER:root}
+    password: ${EXTERNAL_DB_PASSWORD:123456}
+    user-db: ${EXTERNAL_USER_DB:cloud_user_db}
+    device-db: ${EXTERNAL_DEVICE_DB:cloud_device_db}
+    sensor-data-db: ${EXTERNAL_SENSOR_DATA_DB:cloud_sensor_data_db}
+
+logging:
+  level:
+    com.experimentms: INFO
