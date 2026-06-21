@@ -1,24 +1,28 @@
-# GlucoSense Lab Backend
+# GlucoSense-lab
 
-GlucoSense Lab Backend is a Spring Boot service for glucose sensor experiment management. It provides REST APIs for experiment batches, participants, experiment members, sensor profiles, wear records, competitor files, finger blood glucose data, daily experiment indicators, and CGM sensor data aggregation.
+实验数据管理与传感器数据可视化平台，面向血糖传感器实验场景，提供批次、受试人员、实验成员、传感器档案、佩戴记录、竞品文件、指尖血数据、每日实验指标和 CGM 传感器读数的统一管理与分析能力。
 
-The service connects one main business database and three external sensor-related databases, then exposes unified APIs for management pages, data import/export, and visualization.
+项目采用前后端分离架构：后端基于 Spring Boot 提供 REST API，前端基于 Vue 3 构建管理端页面，数据库使用 MySQL。系统当前包含 13 个后端 Controller、87 个 REST API、13 张主业务表和 4 张外部传感器相关表。
 
-## Features
+## 功能模块
 
-- JWT login, registration, current user lookup, and logout.
-- BCrypt password hashing.
-- Admin/User roles with read, write, and delete permissions for 10 business modules.
-- Batch, participant, experiment, and experiment-member management.
-- Sensor profile, sensor detail, and wear-record management.
-- Conflict checks for active wear records.
-- Competitor file upload, download, rename, delete, integrity check, and Excel export.
-- Finger blood glucose CRUD, batch delete, filtering, and Excel export.
-- Daily experiment data Excel import with MARD/PARD average calculation.
-- CGM data aggregation across business, user, device, and sensor-data databases.
-- Global exception handling and unified JSON error responses.
+- 用户认证：登录、注册、当前用户信息、登出。
+- 权限管理：支持 Admin/User 角色，按 10 个业务模块配置读、写、删权限。
+- 首页统计：批次数、人员数、实验数、指尖血数据量统计及操作日志展示。
+- 批次管理：批次新增、查询、修改、删除，支持批次号唯一性校验。
+- 人员管理：受试人员新增、查询、修改、删除，支持按批次维护人员。
+- 实验管理：实验创建、实验成员维护、成员增删、实验记录删除。
+- 竞品数据：竞品文件上传、下载、重命名、删除、完整性检查和 Excel 导出。
+- 指尖血数据：指尖血数据增删改查、批量删除、条件筛选和 Excel 导出。
+- 传感器管理：传感器基础信息维护，支持与人员、批次、传感器详情关联。
+- 传感器详情：传感器测试编号、探针编号、响应值、灵敏度、R 值等信息维护，支持批量创建、重复检测和批量删除。
+- 佩戴记录：传感器佩戴记录维护，校验同一传感器和同一佩戴位置的未结束记录冲突。
+- 实验数据分析：Excel 导入每日实验指标，按人员和实验天数更新 MARD/PARD 数据，并计算平均值。
+- 传感器数据可视化：聚合业务库、云端用户库、云端设备库、云端传感器数据库，按用户、批次、人员、日期查询 CGM 数据，并整合竞品数据和指尖血数据。
 
-## Tech Stack
+## 技术栈
+
+### 后端
 
 - Java 8
 - Spring Boot 2.7.18
@@ -30,48 +34,78 @@ The service connects one main business database and three external sensor-relate
 - Apache POI 5.2.5
 - Maven
 
-## Project Structure
+### 前端
+
+- Vue 3
+- TypeScript
+- Vite
+- Vue Router
+- Pinia
+- Element Plus
+- Axios
+- ECharts / vue-echarts
+- xlsx
+
+### 数据库
+
+- MySQL 5.7/8.x
+- 主业务库：`experiment_manage`
+- 外部用户库：`cloud_user_db`
+- 外部设备库：`cloud_device_db`
+- 外部传感器数据库：`cloud_sensor_data_db`
+
+## 项目结构
 
 ```text
-.
-├── pom.xml
-├── src/main/java/com/experimentms
-│   ├── config/          # Web, CORS, and datasource configuration
-│   ├── controller/      # REST API controllers
-│   ├── exception/       # API exception and global handler
-│   ├── security/        # JWT, authentication, and permission checks
-│   ├── service/         # JDBC helper and activity log service
-│   └── util/            # Payload, time, and map utilities
-├── src/main/resources
-│   └── application.yml
-└── database_schemas/    # Optional SQL scripts for local initialization
+ExperimentMS-main
+├── backend-java/                # Spring Boot 后端
+│   ├── src/main/java/com/experimentms
+│   │   ├── config/              # Web、CORS、多数据源配置
+│   │   ├── controller/          # REST API 控制器
+│   │   ├── exception/           # 全局异常处理
+│   │   ├── security/            # JWT、鉴权、权限校验
+│   │   ├── service/             # 数据库访问和操作日志服务
+│   │   └── util/                # 参数、时间、Map 工具
+│   ├── src/main/resources/
+│   │   └── application.yml      # 后端配置
+│   └── pom.xml
+├── frontend/                    # Vue 3 前端
+│   ├── src/pages/               # 页面模块
+│   ├── src/components/          # 通用组件
+│   ├── src/services/api.ts      # API 封装
+│   ├── src/stores/              # Pinia 状态管理
+│   └── package.json
+└── database_schemas/            # 数据库建表和模拟数据脚本
+    ├── experiment_manage.sql
+    ├── external_three_databases.sql
+    ├── simulated_data.sql
+    └── generate_simulated_data.py
 ```
 
-## Database
+## 环境要求
 
-The backend uses four MySQL databases:
+- JDK 8+
+- Maven 3.6+
+- Node.js 18+
+- npm 9+
+- MySQL 5.7/8.x
 
-| Database | Purpose |
-| --- | --- |
-| `experiment_manage` | Main business data: users, permissions, batches, persons, experiments, files, finger blood data, sensors, wear records, activity logs, and daily experiment data |
-| `cloud_user_db` | External user lookup |
-| `cloud_device_db` | External CGM device and sensor parameter data |
-| `cloud_sensor_data_db` | External CGM sensor readings |
+## 数据库初始化
 
-Initialize table structures:
+先创建主业务库和 3 个外部库：
 
 ```powershell
 mysql -uroot -p < database_schemas\experiment_manage.sql
 mysql -uroot -p < database_schemas\external_three_databases.sql
 ```
 
-Optional demo data:
+如需导入模拟数据，可继续执行：
 
 ```powershell
 mysql -uroot -p < database_schemas\simulated_data.sql
 ```
 
-Demo data uses placeholder password hashes. For local development, either register a new user from the API or create an admin user manually:
+模拟数据中的用户密码哈希是占位值，不能直接登录。开发环境可以注册新用户，或执行下面的 SQL 初始化一个管理员账号：
 
 ```sql
 USE experiment_manage;
@@ -90,106 +124,192 @@ ON DUPLICATE KEY UPDATE
   updateTime = NOW();
 ```
 
-Local account:
+默认账号：
 
 ```text
 username: admin
 password: 123456
 ```
 
-## Configuration
+> 上面的账号仅建议用于本地开发环境。正式环境请修改默认密码，并使用更安全的 `JWT_SECRET`。
 
-Configuration is stored in `src/main/resources/application.yml`.
+## 后端启动
 
-| Environment Variable | Default | Description |
-| --- | --- | --- |
-| `DB_HOST` | `localhost` | Main database host |
-| `DB_PORT` | `3306` | Main database port |
-| `DB_NAME` | `experiment_manage` | Main database name |
-| `DB_USER` | `root` | Main database username |
-| `DB_PASSWORD` | `123456` | Main database password |
-| `JWT_SECRET` | built-in local default | JWT signing secret |
-| `JWT_EXPIRATION_MINUTES` | `30` | Token expiration in minutes |
-| `UPLOADS_DIR` | `uploads` | Upload directory |
-| `DOWNLOADS_DIR` | `downloads` | Download directory |
-| `EXTERNAL_DB_HOST` | `localhost` | External database host |
-| `EXTERNAL_DB_PORT` | `3306` | External database port |
-| `EXTERNAL_DB_USER` | `root` | External database username |
-| `EXTERNAL_DB_PASSWORD` | `123456` | External database password |
-| `EXTERNAL_USER_DB` | `cloud_user_db` | External user database |
-| `EXTERNAL_DEVICE_DB` | `cloud_device_db` | External device database |
-| `EXTERNAL_SENSOR_DATA_DB` | `cloud_sensor_data_db` | External sensor-data database |
+进入后端目录：
 
-Default server port:
-
-```text
-8000
+```powershell
+cd backend-java
 ```
 
-Default upload limit:
-
-```text
-20MB
-```
-
-## Run Locally
-
-Build:
+构建项目：
 
 ```powershell
 mvn clean package -DskipTests
 ```
 
-Run:
+启动服务：
 
 ```powershell
 java -jar target\experimentms-backend-1.0.0.jar
 ```
 
-Health check:
+默认后端地址：
+
+```text
+http://localhost:8000
+```
+
+健康检查：
 
 ```text
 http://localhost:8000/health
 ```
 
-Use a different port:
+## 前端启动
+
+进入前端目录：
 
 ```powershell
-java -jar target\experimentms-backend-1.0.0.jar --server.port=8001
+cd frontend
 ```
 
-## API Overview
+安装依赖：
 
-| Module | Prefix | Description |
-| --- | --- | --- |
-| Auth and users | `/api/auth` | Login, registration, user management, and permission assignment |
-| Batches | `/api/batches` | Experiment batch CRUD |
-| Persons | `/api/persons` | Participant CRUD |
-| Experiments | `/api/experiments` | Experiment and member management |
-| Competitor files | `/api/competitorFiles` | File upload, download, rename, delete, integrity check, and export |
-| Finger blood data | `/api/fingerBloodData` | Finger blood glucose CRUD, batch delete, and export |
-| Sensors | `/api/sensors` | Sensor management |
-| Sensor details | `/api/sensorDetails` | Sensor detail management, batch create, duplicate check, and batch delete |
-| Wear records | `/api/wearRecords` | Wear-record management and active-record conflict checks |
-| Experiment data | `/api/experimentData` | Daily MARD/PARD data import, query, and statistics |
-| Sensor visualization | `/api/sensor-data` | CGM data aggregation, available dates, competitor data, finger blood data, and Excel download |
-| Activities | `/api/activities` | Activity log query and creation |
-| Dashboard stats | `/api/stats/dashboard` | Dashboard count statistics |
+```powershell
+npm install
+```
 
-All `/api/**` endpoints except `/api/auth/login` and `/api/auth/register` require a JWT:
+启动开发服务：
+
+```powershell
+npm run dev
+```
+
+默认前端地址：
+
+```text
+http://localhost:5173
+```
+
+前端 API 基础地址写在 `frontend/src/services/api.ts` 中，默认指向：
+
+```text
+http://localhost:8000
+```
+
+如果后端端口变化，需要同步修改该地址，或改造成环境变量配置。
+
+## 后端配置
+
+后端配置文件位于 `backend-java/src/main/resources/application.yml`。常用环境变量如下：
+
+| 变量名                    | 默认值                 | 说明                   |
+| ------------------------- | ---------------------- | ---------------------- |
+| `DB_HOST`                 | `localhost`            | 主业务库地址           |
+| `DB_PORT`                 | `3306`                 | 主业务库端口           |
+| `DB_NAME`                 | `experiment_manage`    | 主业务库名称           |
+| `DB_USER`                 | `root`                 | 主业务库用户名         |
+| `DB_PASSWORD`             | `123456`               | 主业务库密码           |
+| `JWT_SECRET`              | 配置文件内默认值       | JWT 签名密钥           |
+| `JWT_EXPIRATION_MINUTES`  | `30`                   | Token 有效期，单位分钟 |
+| `UPLOADS_DIR`             | `uploads`              | 上传文件目录           |
+| `DOWNLOADS_DIR`           | `downloads`            | 下载文件目录           |
+| `EXTERNAL_DB_HOST`        | `localhost`            | 外部库地址             |
+| `EXTERNAL_DB_PORT`        | `3306`                 | 外部库端口             |
+| `EXTERNAL_DB_USER`        | `root`                 | 外部库用户名           |
+| `EXTERNAL_DB_PASSWORD`    | `123456`               | 外部库密码             |
+| `EXTERNAL_USER_DB`        | `cloud_user_db`        | 云端用户库             |
+| `EXTERNAL_DEVICE_DB`      | `cloud_device_db`      | 云端设备库             |
+| `EXTERNAL_SENSOR_DATA_DB` | `cloud_sensor_data_db` | 云端传感器数据库       |
+
+文件上传限制：
+
+```yaml
+spring:
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+```
+
+## API 概览
+
+| 模块         | 路径前缀               | 说明                                           |
+| ------------ | ---------------------- | ---------------------------------------------- |
+| 认证与用户   | `/api/auth`            | 登录、注册、用户管理、权限分配                 |
+| 批次管理     | `/api/batches`         | 批次增删改查                                   |
+| 人员管理     | `/api/persons`         | 人员增删改查、批次人员查询                     |
+| 实验管理     | `/api/experiments`     | 实验及实验成员维护                             |
+| 竞品文件     | `/api/competitorFiles` | 文件上传、下载、重命名、删除、导出             |
+| 指尖血数据   | `/api/fingerBloodData` | 指尖血数据维护、批量删除、Excel 导出           |
+| 传感器管理   | `/api/sensors`         | 传感器信息维护                                 |
+| 传感器详情   | `/api/sensorDetails`   | 传感器详情维护、批量创建、重复检测             |
+| 佩戴记录     | `/api/wearRecords`     | 佩戴记录维护和冲突校验                         |
+| 实验数据分析 | `/api/experimentData`  | 每日实验指标导入、查询、统计                   |
+| 传感器可视化 | `/api/sensor-data`     | CGM 数据聚合、竞品数据、指尖血数据、Excel 下载 |
+| 操作日志     | `/api/activities`      | 操作记录查询和创建                             |
+| 首页统计     | `/api/stats/dashboard` | 首页统计指标                                   |
+
+除 `/api/auth/login` 和 `/api/auth/register` 外，其他 `/api/**` 接口均需要在请求头中携带 JWT：
 
 ```text
 Authorization: Bearer <access_token>
 ```
 
-## Core Rules
+## 核心业务规则
 
-- Batch numbers are unique.
-- Sensor test numbers and probe numbers are unique.
-- An experiment must have at least one member.
-- The same sensor can have only one active wear record.
-- The same person can have only one active wear record at the same wear position.
-- Ending a wear record synchronizes the sensor end time and reason.
-- Daily experiment data import creates or updates records by person and experiment day.
-- CGM visualization queries sensor readings within the device wear-time window.
+- 批次号唯一，删除批次前会检查实验、竞品文件、指尖血、传感器等关联数据。
+- 传感器测试编号和探针编号唯一，批量创建时会提前检测重复数据。
+- 创建实验时至少需要 1 名实验成员，实验成员通过中间表维护。
+- 同一传感器只能存在 1 条未结束佩戴记录。
+- 同一人员同一佩戴位置只能存在 1 条未结束佩戴记录。
+- 佩戴记录结束后，会同步回写传感器结束时间和结束原因。
+- 实验指标导入时，按 `person_id + experiment_day` 判断新增或更新。
+- 传感器可视化按云端设备佩戴时间筛选 15 天内的 CGM 读数。
+
+## 前端页面
+
+- `/login`：登录/注册
+- `/dashboard`：首页统计
+- `/batches`：批次管理
+- `/persons`：人员管理
+- `/experiments`：实验管理
+- `/competitorData`：竞品数据
+- `/fingerBloodData`：指尖血数据
+- `/sensors`：传感器管理
+- `/sensorDetails`：传感器详情
+- `/wearRecords`：佩戴记录
+- `/sensorDataVisualization`：传感器数据可视化
+- `/experimentDataAnalysis`：实验数据分析
+- `/users`：用户管理，管理员可见
+
+## 构建命令
+
+后端：
+
+```powershell
+cd backend-java
+mvn clean package -DskipTests
+```
+
+前端：
+
+```powershell
+cd frontend
+npm run build
+```
+
+前端类型检查：
+
+```powershell
+cd frontend
+npm run check
+```
+
+前端代码检查：
+
+```powershell
+cd frontend
+npm run lint
+```
 
